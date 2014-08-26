@@ -37,9 +37,9 @@ x2=x1+chi;
 
 %Beall parameters
 T=700;
-n_real=200;
-Nk=100;
-Nomegalin=100;
+n_real=7000;
+Nk=300;
+Nomegalin=300;
 
 %Amplitudes
 ampl=1e-9*ones(1,Nfreq); 
@@ -58,8 +58,6 @@ for i=1:Nfreq
 signal1(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x1-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x1-omega(1,i).*time) + ampa(1,i).*cos(kalf(1,i)*x1-omega(1,i).*time);
 signal2(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x2-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x2-omega(1,i).*time) + ampa(1,i).*cos(kalf(1,i)*x2-omega(1,i).*time);
 end
-
-
 
 
 %Sum signals
