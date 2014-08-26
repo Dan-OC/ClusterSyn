@@ -1,8 +1,6 @@
 %%Synthetic signal tests
 
-%Lets see if this works
-%It does!
-
+%another test
 
 %Physical constants:
 mi=1.67e-27;
