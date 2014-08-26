@@ -1,7 +1,5 @@
 %%Synthetic signal tests
 
-%Okay this is probably tyher last one now 
-
 
 %Physical constants:
 mi=1.67e-27;
@@ -27,9 +25,9 @@ Ntime=floor(maxtime/deltt);
 time=linspace(0,maxtime,Ntime);
 
 %Frequencies:
-Nfreq=50;
+Nfreq=10;
 maxf=1.3*omega_ci/(2*pi);
-frequencies=linspace(0.05*omega_ci/(2*pi),maxf,Nfreq);
+frequencies=linspace(0.03*omega_ci/(2*pi),maxf,Nfreq);
 omega=frequencies*2*pi;
 
 %Probes
@@ -38,25 +36,30 @@ x1=chi;
 x2=x1+chi;
 
 %Beall parameters
-T=2000;
-n_real=10000;
-Nk=400;
-Nomegalin=400;
+T=700;
+n_real=200;
+Nk=100;
+Nomegalin=100;
 
 %Amplitudes
-amp=ones(1,Nfreq); 
-
+ampl=1e-9*ones(1,Nfreq); 
+ampr=1e-9*ones(1,Nfreq);
+ampa=1e-9*ones(1,Nfreq);
 
 %Dispersion relation for left wave:
 for i=1:Nfreq
     kioncycl(1,i)=((omega(1,i))/speedoflight)*sqrt(1+(omega_pe^2+omega_pi^2)/( (omega_ce+omega(1,i))*((omega_ci)-((omega(1,i))))));
+    kioncycr(1,i)=((omega(1,i))/speedoflight)*sqrt(1+(omega_pe^2+omega_pi^2)/( (omega_ce-omega(1,i))*((omega_ci)+((omega(1,i))))));
+    kalf(1,i)=alfven_i*omega(1,i);
 end
 
 %Signal synthesis
 for i=1:Nfreq
-signal1(i,1:Ntime)=amp(1,i).*cos(kioncycl(1,i)*x1-omega(1,i).*time);
-signal2(i,1:Ntime)=amp(1,i).*cos(kioncycl(1,i)*x2-omega(1,i).*time);
+signal1(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x1-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x1-omega(1,i).*time) + ampa(1,i).*cos(kalf(1,i)*x1-omega(1,i).*time);
+signal2(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x2-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x2-omega(1,i).*time) + ampa(1,i).*cos(kalf(1,i)*x2-omega(1,i).*time);
 end
+
+
 
 
 %Sum signals
@@ -71,8 +74,13 @@ Fs=1/deltt;
 f=Fs/2*linspace(0,1,N/2+1);
 
 
+if exist('s','var')==0
+    s=1;
+end
+
+
 %Plot time series:
-figure(1);
+figure(s);
 set(gcf,'Position',[50 50 900 900]);
 subplot(3,2,1);
 hold off
@@ -84,7 +92,7 @@ title('Time Series')
 legend('C1','C2')
 pause(1)
 %Plot transform
-figure(1)
+figure(s)
 hold on
 subplot(3,2,2);
 plot(f*2*pi/omega_ci,2*abs(Y1(1,1:N/2+1)),'b',f*2*pi/omega_ci,2*abs(Y2(1,1:N/2+1)),'r');
@@ -96,17 +104,17 @@ legend('C1','C2')
 hold off
 pause(1)
 %Dispersion relations:
-figure(1);
+figure(s);
 subplot(3,2,[3 4]);
 hold on
-plot(real(kioncycl*alfven_i/omega_ci),omega/omega_ci,'b')
+plot(real(kioncycl*alfven_i/omega_ci),omega/omega_ci,'b',real(kioncycr*alfven_i/omega_ci),omega/omega_ci,'r',kalf*alfven_i/omega_ci,omega/omega_ci,'m')
 % plot(kioncycr*alfven_i/omega_ci,omega/omega_ci,'g')
 % plot(kalf*alfven_i/omega_ci,omega/omega_ci,'m')
 xlabel('k V_{A}/\omega_{ci}')
 ylabel('\omega/\omega_{ci}')
 title('Dispersion Relation')
-xlim([0 ceil(max(kioncycl)*alfven_i/omega_ci*1.1)])
-ylim([ 0 max(omega)/omega_ci])
+xlim([0 ceil(max(real(kioncycl))*alfven_i/omega_ci*1.1)])
+ylim([0 1.1*max(omega/omega_ci)]);
 hold off
 pause(2);
 
@@ -166,7 +174,9 @@ Nomega=NV/2+1;
 
 % Bin realisations k  (eq 36 from Beall paper)
 disp('Binning...')
+h=waitbar(0,'Binning...');
 for OM=1:Nomegalin
+    waitbar(OM/Nomegalin,h,sprintf('%12.9f',omegalin(1,OM)/omega_ci));
  for F=1:Nk
     for omegabin=1:Nomega
        for z=1:M
@@ -183,11 +193,11 @@ S_hat=S_hat/M; %Averages out S_hat for number of rows
 
 
 %Power plot
-figure(1);
+figure(s);
 subplot(3,2,[5 6]);
 h2=pcolor(Klin*(alfven_i/omega_ci),omegalin/omega_ci,log10(S_hat)); %Colour plot, dispersion relation with S_hat
 ylim([ 0 max(omega)/omega_ci])
-xlim([ 0 ceil(max(kioncycl)*alfven_i/omega_ci*1.1)])
+xlim([ 0 ceil(max(real(kioncycl))*alfven_i/omega_ci*1.1)])
 hold on
 plot(real(kioncycl*alfven_i/omega_ci),omega/omega_ci,'r')
 pause(1)
