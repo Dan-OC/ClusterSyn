@@ -19,32 +19,37 @@ omega_pe=sqrt((density*(unit_charge)^2)/(me*epsilon_0));
 alfven_i=meanB/((mu_0*density*mi)^0.5);
 
 %Times
-maxtime=3000;
+mintime=3000;
+maxtime=6000;
 deltt=0.05;
 Ntime=floor(maxtime/deltt);
-time=linspace(0,maxtime,Ntime);
+time=linspace(mintime,maxtime,Ntime);
 
 %Frequencies:
-Nfreq=10;
+Nfreq=101;
 maxf=1.3*omega_ci/(2*pi);
 frequencies=linspace(0.03*omega_ci/(2*pi),maxf,Nfreq);
 omega=frequencies*2*pi;
 
 %Probes
 chi=1.2e5;
-x1=chi;
-x2=x1+chi;
+x1=3*chi;
+x2=2*chi;
 
 %Beall parameters
 T=700;
-n_real=7000;
-Nk=300;
-Nomegalin=300;
+n_real=1000;
+Nk=200;
+Nomegalin=200;
 
 %Amplitudes
-ampl=1e-9*ones(1,Nfreq); 
+ampl=1e-9*normpdf(omega,max(omega)/2,0.03).*ones(1,Nfreq); 
 ampr=1e-9*ones(1,Nfreq);
 ampa=1e-9*ones(1,Nfreq);
+
+%Window length
+winstart=find(ampl~=0,1,'first');
+windned=find(ampl~=0,1,'last');
 
 %Dispersion relation for left wave:
 for i=1:Nfreq
@@ -55,8 +60,8 @@ end
 
 %Signal synthesis
 for i=1:Nfreq
-signal1(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x1-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x1-omega(1,i).*time) + ampa(1,i).*cos(kalf(1,i)*x1-omega(1,i).*time);
-signal2(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x2-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x2-omega(1,i).*time) + ampa(1,i).*cos(kalf(1,i)*x2-omega(1,i).*time);
+signal1(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x1-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x1-omega(1,i).*time);% + ampa(1,i).*cos(kalf(1,i)*x1-omega(1,i).*time);
+signal2(i,1:Ntime)=ampl(1,i).*cos(kioncycl(1,i)*x2-omega(1,i).*time) + ampr(1,i).*cos(kioncycr(1,i)*x2-omega(1,i).*time);% + ampa(1,i).*cos(kalf(1,i)*x2-omega(1,i).*time);
 end
 
 
@@ -85,7 +90,7 @@ hold off
 plot(time, real(signal1),'b',time, real(signal2),'r');
 xlabel('Time (s)')
 ylabel('Field Amplitude')
-xlim([0 T]);
+xlim([mintime mintime+T]);
 title('Time Series')
 legend('C1','C2')
 pause(1)
@@ -93,7 +98,7 @@ pause(1)
 figure(s)
 hold on
 subplot(3,2,2);
-plot(f*2*pi/omega_ci,2*abs(Y1(1,1:N/2+1)),'b',f*2*pi/omega_ci,2*abs(Y2(1,1:N/2+1)),'r');
+plot(omega/omega_ci,ampl,'-m',f*2*pi/omega_ci,2*abs(Y1(1,1:N/2+1)),'b',f*2*pi/omega_ci,2*abs(Y2(1,1:N/2+1)),'r');
 xlim([0 1.1*max(omega/omega_ci)]); % 0 1.1*2*max(abs(Y2))])
 xlabel('\omega/\omega_{ci}');
 ylabel('Amplitude');
@@ -121,9 +126,9 @@ pause(2);
 %%Beall analysis
 
 %Split signal into realizations
-start=linspace(0,maxtime,n_real);
+start=linspace(mintime,maxtime,n_real);
 maxi=find(start<=maxtime-T,1,'last'); %Maximum start point of realization
-lengthreal=find(time==start(1,1),1,'first')+ find(time>=T,1,'first') -2;
+lengthreal=find(time==start(1,1),1,'first')+ find(time>=mintime+T,1,'first') -2;
 
 for i=1:maxi
     
